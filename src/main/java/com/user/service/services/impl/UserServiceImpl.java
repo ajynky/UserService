@@ -46,7 +46,6 @@ public class UserServiceImpl implements UserService {
 		// @formatter:on
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public User getUser(String userId) {
 		User user = userRepository.findById(userId)
