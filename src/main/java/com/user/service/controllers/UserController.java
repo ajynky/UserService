@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.user.service.entities.User;
 import com.user.service.services.UserService;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
+
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
 
 	@Autowired
@@ -24,19 +28,35 @@ public class UserController {
 
 	@PostMapping
 	public ResponseEntity<User> createUser(@RequestBody User user) {
-		
+
 		User savedUser = userService.saveUser(user);
 		return new ResponseEntity<User>(savedUser, HttpStatus.CREATED);
 	}
 
 	@GetMapping("/{userId}")
+	@CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod = "ratingHotelFallback")
 	public ResponseEntity<User> getSingleUser(@PathVariable String userId) {
 		User user = userService.getUser(userId);
 		return ResponseEntity.status(HttpStatus.FOUND).body(user);
 	}
-	
+
+	// creating fallback method for circuit breaker
+	public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex) {
+		// @formatter:off
+		log.info("Fallback method is called because service is down",ex.getMessage());
+		User user = User.builder()
+					.email("dummy@email.com")
+					.name("Dummy")
+					.about("this user is return because the service is down")
+					.userId("123")
+					.build();
+		// @formatter:off
+		return new ResponseEntity<>(user,HttpStatus.OK);
+
+	}
+
 	@GetMapping
-	public ResponseEntity<List<User>> getAllUser(){
+	public ResponseEntity<List<User>> getAllUser() {
 		List<User> allUsers = userService.getAllUsers();
 		return ResponseEntity.ok(allUsers);
 	}

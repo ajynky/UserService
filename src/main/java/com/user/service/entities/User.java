@@ -12,6 +12,7 @@ import javax.persistence.Transient;
 import com.user.service.entities.dto.RatingDTO;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,6 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name = "micro_users")
 public class User {
 
