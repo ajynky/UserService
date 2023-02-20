@@ -38,6 +38,7 @@ public class User {
 	private String about;
 
 	@Transient
+	@Builder.Default
 	private List<RatingDTO> ratings = new ArrayList<>();
 
 }

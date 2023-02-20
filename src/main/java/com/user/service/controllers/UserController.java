@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.user.service.entities.User;
 import com.user.service.services.UserService;
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -33,9 +33,15 @@ public class UserController {
 		return new ResponseEntity<User>(savedUser, HttpStatus.CREATED);
 	}
 
+	int retryCount = 1;
+
 	@GetMapping("/{userId}")
-	@CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod = "ratingHotelFallback")
+	// @CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod =
+	// "ratingHotelFallback")
+	@Retry(name = "ratingHotelService", fallbackMethod = "ratingHotelFallback")
 	public ResponseEntity<User> getSingleUser(@PathVariable String userId) {
+		log.info("Retry Count: {}", retryCount);
+		retryCount++;
 		User user = userService.getUser(userId);
 		return ResponseEntity.status(HttpStatus.FOUND).body(user);
 	}
@@ -43,7 +49,7 @@ public class UserController {
 	// creating fallback method for circuit breaker
 	public ResponseEntity<User> ratingHotelFallback(String userId, Exception ex) {
 		// @formatter:off
-		log.info("Fallback method is called because service is down",ex.getMessage());
+		// log.info("Fallback method is called because service is down",ex.getMessage());
 		User user = User.builder()
 					.email("dummy@email.com")
 					.name("Dummy")
